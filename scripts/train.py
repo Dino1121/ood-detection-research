@@ -16,7 +16,7 @@ from src.models.resnet18_cifar import ResNet18CIFAR
 
 MEAN = (0.4914, 0.4822, 0.4465)
 STD = (0.2470, 0.2435, 0.2616)
-
+SPLIT_SEED = 42
 
 def set_seed(seed):
     random.seed(seed)
@@ -57,9 +57,13 @@ def build_loaders(batch_size, workers, seed, output_dir):
         root="data", train=False, download=False, transform=eval_transform
     )
 
-    # Fixed subsets: 5,000 clean training examples and 1,000 validation examples.
-    train_clean_indices = select_per_class(train_clean_dataset.targets, 500, seed)
-    val_indices = select_per_class(test_dataset.targets, 100, seed)
+    # Keep data partitions identical across independent training seeds.
+    train_clean_indices = select_per_class(
+        train_clean_dataset.targets, 500, SPLIT_SEED
+    )
+    val_indices = select_per_class(
+        test_dataset.targets, 100, SPLIT_SEED
+    )
     test_indices = sorted(set(range(len(test_dataset))) - set(val_indices))
 
     split_path = output_dir / "split_indices.json"
